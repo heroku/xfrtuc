@@ -2,7 +2,7 @@ require 'json'
 require 'rest_client'
 
 module Xfrtuc
-  VERSION = "0.0.2"
+  VERSION = "0.0.3"
 
   class Client
     attr_reader :base_url
@@ -81,8 +81,8 @@ module Xfrtuc
   class Transfer < ApiEndpoint
     def initialize(client); super; end
 
-    def info(id)
-      client.get("/transfers/#{id}")
+    def info(id, verbose: false)
+      client.get("/transfers/#{id}", params: { verbose: verbose })
     end
 
     def list

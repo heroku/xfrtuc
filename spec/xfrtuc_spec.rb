@@ -216,7 +216,7 @@ module Xfrtuc
         if xfer_id.nil?
           list_transfers(group_name)
         else
-          get_transfer(group_name, xfer_id, verbose: params(env)['verbose'])
+          get_transfer(group_name, xfer_id, verbose: params(env)['verbose'] == 'true')
         end
       else
         [405, headers, []]
@@ -458,6 +458,16 @@ module Xfrtuc
           xfer_data.each do |k,v|
             expect(xfer[k.to_s]).to eq(v)
           end
+          expect(xfer["logs"]).to be_nil
+        end
+
+        it "includes logs when verbose mode is requested" do
+          id = fakesferatu.last_transfer(g)[:uuid]
+          xfer = client.group(g).transfer.info(id, verbose: true)
+          xfer_data.each do |k,v|
+            expect(xfer[k.to_s]).to eq(v)
+          end
+          expect(xfer["logs"]).not_to be_nil
         end
       end
 
