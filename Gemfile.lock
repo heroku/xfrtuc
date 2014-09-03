@@ -1,8 +1,8 @@
 PATH
   remote: .
   specs:
-    xfrtuc (0.0.1)
-      rest-client
+    xfrtuc (0.0.2)
+      rest-client (~> 1.6)
 
 GEM
   remote: https://rubygems.org/
@@ -36,5 +36,5 @@ PLATFORMS
 
 DEPENDENCIES
   rspec (~> 3.0)
-  sham_rack
+  sham_rack (~> 1.3)
   xfrtuc!

@@ -2,7 +2,7 @@ require 'json'
 require 'rest_client'
 
 module Xfrtuc
-  VERSION = "0.0.1"
+  VERSION = "0.0.2"
 
   class Client
     attr_reader :base_url
