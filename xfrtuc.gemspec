@@ -1,4 +1,4 @@
-require_relative 'lib/xfrtuc'
+require './lib/xfrtuc'
 
 Gem::Specification.new do |gem|
   gem.authors       = ["Maciek Sakrejda"]

@@ -7,7 +7,7 @@ module Xfrtuc
   class Client
     attr_reader :base_url
 
-    def initialize(username, password, base_url: 'https://transferatu.heroku.com')
+    def initialize(username, password, base_url='https://transferatu.heroku.com')
       @base_url = base_url
       @username = username
       @password = password
@@ -31,7 +31,7 @@ module Xfrtuc
         @group_client ||= Xfrtuc::Group.new(self)
       else
         self.class.new(@username, @password,
-                       base_url: @base_url + "/groups/#{URI.encode(name)}")
+                       @base_url + "/groups/#{URI.encode(name)}")
       end
     end
 
@@ -81,7 +81,11 @@ module Xfrtuc
   class Transfer < ApiEndpoint
     def initialize(client); super; end
 
-    def info(id, verbose: false)
+    def info(id, opts={})
+      verbose = opts.delete(:verbose) || false
+      unless opts.empty?
+        raise ArgumentError, "Unsupported option(s): #{opts.keys}"
+      end
       client.get("/transfers/#{id}", params: { verbose: verbose })
     end
 
@@ -89,8 +93,18 @@ module Xfrtuc
       client.get("/transfers")
     end
 
-    def create(from_type:, from_url:, from_name: nil,
-               to_type:, to_url:, to_name: nil, opts: {})
+    def create(opts)
+      from_type = opts.fetch :from_type
+      from_url = opts.fetch :from_url
+      to_type = opts.fetch :to_type
+      to_url = opts.fetch :to_url
+      [ :from_type, :from_url, :to_type, :to_url ].each { |key| opts.delete key }
+      from_name = opts.delete :from_name
+      to_name = opts.delete :to_name
+      unless opts.empty?
+        raise ArgumentError, "Unsupported option(s): #{opts.keys}"
+      end
+
       client.post("/transfers",
                   from_type: from_type,
                   from_url: from_url,
@@ -116,8 +130,17 @@ module Xfrtuc
       client.get("/schedules")
     end
 
-    def create(name:, callback_url:, hour:,
-               days: Date::DAYNAMES, timezone: 'UTC')
+    def create(opts)
+      name = opts.fetch :name
+      callback_url = opts.fetch :callback_url
+      hour = opts.fetch :hour
+      days = opts.fetch(:days, Date::DAYNAMES)
+      timezone = opts.fetch(:timezone, 'UTC')
+      [ :name, :callback_url, :hour, :days, :timezone ].each { |key| opts.delete key }
+      unless opts.empty?
+        raise ArgumentError, "Unsupported option(s): #{opts.keys}"
+      end
+
       client.post("/schedules",
                   name: name,
                   callback_url: callback_url,

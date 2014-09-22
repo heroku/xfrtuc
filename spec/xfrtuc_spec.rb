@@ -1,3 +1,4 @@
+require 'securerandom'
 require 'spec_helper'
 require 'sham_rack'
 
@@ -84,7 +85,7 @@ module Xfrtuc
       end
     end
 
-    def get_transfer(group_name, xfer_id, verbose: false)
+    def get_transfer(group_name, xfer_id, verbose=false)
       group = @groups.find { |g| g[:name] == group_name }
       if group.nil?
         [404, headers, []]
@@ -216,7 +217,7 @@ module Xfrtuc
         if xfer_id.nil?
           list_transfers(group_name)
         else
-          get_transfer(group_name, xfer_id, verbose: params(env)['verbose'] == 'true')
+          get_transfer(group_name, xfer_id, params(env)['verbose'] == 'true')
         end
       else
         [405, headers, []]
@@ -348,7 +349,7 @@ module Xfrtuc
     let(:user)        { User.new(username, password) }
     let(:fakesferatu) { FakeTransferatu.new(user) }
     let(:host)        { 'transferatu.example.com' }
-    let(:client)      { Client.new(username, password, base_url: "https://#{host}") }
+    let(:client)      { Client.new(username, password, "https://#{host}") }
 
     before do
       ShamRack.mount(fakesferatu, host, 443)
