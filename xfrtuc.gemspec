@@ -1,4 +1,4 @@
-require File.expand_path('../lib/xfrtuc', __FILE__)
+require File.expand_path('../lib/xfrtuc/version', __FILE__)
 
 Gem::Specification.new do |gem|
   gem.authors       = ["Maciek Sakrejda"]
