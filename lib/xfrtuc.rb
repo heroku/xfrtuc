@@ -37,7 +37,7 @@ module Xfrtuc
       JSON.parse(@resource[path].get(params))
     end
 
-    def post(path, data)
+    def post(path, data={})
       JSON.parse(@resource[path].post(JSON.generate(data)))
     end
 
@@ -114,6 +114,10 @@ module Xfrtuc
 
     def delete(id)
       client.delete("/transfers/#{URI.encode(id)}")
+    end
+
+    def cancel(id)
+      client.post("/transfers/#{URI.encode(id)}/actions/cancel")
     end
   end
 

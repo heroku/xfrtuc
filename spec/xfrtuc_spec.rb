@@ -128,6 +128,25 @@ module Xfrtuc
       end
     end
 
+    def take_transfer_action(action, args, group_name, xfer_id)
+      unless @transfers.has_key? group_name
+        return [404, headers, []]
+      end
+      xfer = @transfers[group_name].find { |item| item[:uuid] == xfer_id }
+      if xfer.nil?
+        return [404, headers, []]
+      else
+        case action
+        when 'cancel' then
+          now = Time.now
+          xfer[:canceled_at] = now
+          return [201, headers, [ { canceled_at: now }.to_json ]]
+        else
+          return [404, headers, []]
+        end
+      end
+    end
+
     def add_schedule(group_name, schedule)
       unless @schedules.has_key? group_name
         return [404, headers, []]
@@ -186,6 +205,8 @@ module Xfrtuc
         return [401, headers, ["Not authorized"]]
       end
       case path(env)
+      when %r{/groups/[^/]+/transfers/[^/]+/actions} then
+        transfers_actions_endpoint(env)
       when %r{/groups/[^/]+/transfers} then
         transfers_endpoint(env)
       when %r{/groups/[^/]+/schedules} then
@@ -194,6 +215,20 @@ module Xfrtuc
         groups_endpoint(env)
       else
         [404, headers, []]
+      end
+    end
+
+    def transfers_actions_endpoint(env)
+      path = path(env)
+      group_name, xfer_id, action =
+        path.match(%r{\A/groups/(.*)/transfers/(.*)/actions/(.*)\z}) && [$1, $2, $3]
+      verb = verb(env)
+      if verb == 'POST'
+        body = body(env)
+        args = JSON.parse(body) unless body.empty?
+        take_transfer_action(action, args, group_name, xfer_id)
+      else
+        [405, headers, []]
       end
     end
 
@@ -483,6 +518,21 @@ module Xfrtuc
           expect(fakesferatu.last_transfer(g)).to be_nil
         end
       end
+
+      describe "#cancel" do
+        before do
+          fakesferatu.add_transfer(g, Hash[xfer_data.map { |k, v| [k.to_s, v] }])
+        end
+
+        it "cancels the given transfer" do
+          id = fakesferatu.last_transfer(g)[:uuid]
+          before = Time.now
+          cancel_data = client.group(g).transfer.cancel(id)
+          canceled_at = Time.parse(cancel_data["canceled_at"])
+          expect(canceled_at).to be_within(60).of(before)
+        end
+      end
+
     end
 
     describe Schedule do
