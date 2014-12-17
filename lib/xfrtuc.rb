@@ -119,6 +119,10 @@ module Xfrtuc
     def cancel(id)
       client.post("/transfers/#{URI.encode(id)}/actions/cancel")
     end
+
+    def public_url(id, opts={})
+      client.post("/transfers/#{URI.encode(id)}/actions/public-url", opts)
+    end
   end
 
   class Schedule < ApiEndpoint

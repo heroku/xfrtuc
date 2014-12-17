@@ -141,6 +141,14 @@ module Xfrtuc
           now = Time.now
           xfer[:canceled_at] = now
           return [201, headers, [ { canceled_at: now }.to_json ]]
+        when 'public-url' then
+          expires_at = if args.has_key? 'ttl'
+                         Time.now + args['ttl'].to_i
+                       else
+                         Time.now + (10 * 60)
+                       end
+          url = "https://example.com/backup/#{xfer[:uuid]}"
+          return [201, headers, [ { url: url, expires_at: expires_at }.to_json ]]
         else
           return [404, headers, []]
         end
@@ -533,6 +541,25 @@ module Xfrtuc
         end
       end
 
+      describe "#public_url" do
+        before do
+          fakesferatu.add_transfer(g, Hash[xfer_data.map { |k, v| [k.to_s, v] }])
+        end
+
+        it "provides a public url for the given transfer" do
+          id = fakesferatu.last_transfer(g)[:uuid]
+          url_data = client.group(g).transfer.public_url(id)
+          expect { URI.parse(url_data["url"]) }.not_to raise_error
+        end
+
+        it "supports an optional ttl parameter" do
+          id = fakesferatu.last_transfer(g)[:uuid]
+          before = Time.now
+          url_data = client.group(g).transfer.public_url(id, ttl: 5 * 60)
+          expires_at = Time.parse(url_data["expires_at"])
+          expect(expires_at).to be_within(60).of(before + (5 * 60))
+        end
+      end
     end
 
     describe Schedule do
