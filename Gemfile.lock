@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    xfrtuc (0.0.3)
+    xfrtuc (0.0.4)
       rest-client (~> 1.6)
 
 GEM

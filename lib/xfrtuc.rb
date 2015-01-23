@@ -99,17 +99,21 @@ module Xfrtuc
       [ :from_type, :from_url, :to_type, :to_url ].each { |key| opts.delete key }
       from_name = opts.delete :from_name
       to_name = opts.delete :to_name
+      log_input_url = opts.delete :log_input_url
       unless opts.empty?
         raise ArgumentError, "Unsupported option(s): #{opts.keys}"
       end
+      payload = {
+                 from_type: from_type,
+                 from_url: from_url,
+                 from_name: from_name,
+                 to_type: to_type,
+                 to_url: to_url,
+                 to_name: to_name
+                }
+      payload.merge!(log_input_url: log_input_url) unless log_input_url.nil?
 
-      client.post("/transfers",
-                  from_type: from_type,
-                  from_url: from_url,
-                  from_name: from_name,
-                  to_type: to_type,
-                  to_url: to_url,
-                  to_name: to_name)
+      client.post("/transfers", payload)
     end
 
     def delete(id)

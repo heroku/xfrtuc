@@ -473,6 +473,13 @@ module Xfrtuc
             expect(xfer[k]).to eq(v)
           end
         end
+
+        it "accepts an optional log_input_url" do
+          log_url = "https://example.com/logs"
+          expect do
+            client.group(g).transfer.create(xfer_data.merge(log_input_url: log_url))
+          end.not_to raise_error
+        end
       end
 
       describe "#list" do
