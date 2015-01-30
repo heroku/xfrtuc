@@ -107,8 +107,11 @@ module Xfrtuc
         return [404, headers, []]
       end
       xfer = { uuid: SecureRandom.uuid }
-      %w(from_type from_url from_name to_type to_url to_name).each do |key|
+      %w(from_type from_url from_name to_type to_url to_name log_input_url).each do |key|
         xfer[key.to_sym] = transfer[key]
+      end
+      if transfer.has_key? 'num_keep'
+        xfer[:num_keep] = transfer['num_keep']
       end
 
       @transfers[group_name] << xfer
@@ -162,6 +165,9 @@ module Xfrtuc
       sched = { uuid: SecureRandom.uuid }
       %w(name callback_url days hour timezone).each do |key|
         sched[key.to_sym] = schedule[key]
+      end
+      %w(retain_weeks retain_months).each do |key|
+        sched[key.to_sym] = schedule[key] if schedule.has_key? key
       end
       @schedules[group_name] << sched
       [201, {}, [sched.to_json]]
@@ -476,9 +482,16 @@ module Xfrtuc
 
         it "accepts an optional log_input_url" do
           log_url = "https://example.com/logs"
-          expect do
-            client.group(g).transfer.create(xfer_data.merge(log_input_url: log_url))
-          end.not_to raise_error
+          client.group(g).transfer.create(xfer_data.merge(log_input_url: log_url))
+          xfer = fakesferatu.last_transfer(g)
+          expect(xfer[:log_input_url]).to eq(log_url)
+        end
+
+        it "accepts an optional num_keep" do
+          num_keep = 3
+          client.group(g).transfer.create(xfer_data.merge(num_keep: num_keep))
+          xfer = fakesferatu.last_transfer(g)
+          expect(xfer[:num_keep]).to eq(num_keep)
         end
       end
 
@@ -588,6 +601,16 @@ module Xfrtuc
           sched_data.each do |k,v|
             expect(sched[k]).to eq(v)
           end
+        end
+
+        it "accepts an optional retain_weeks and retain_months" do
+          retain_weeks = 7
+          retain_months = 8
+          client.group(g).schedule.create(sched_data.merge(retain_weeks: retain_weeks,
+                                                           retain_months: retain_months))
+          sched = fakesferatu.last_schedule(g)
+          expect(sched[:retain_weeks]).to eq(retain_weeks)
+          expect(sched[:retain_months]).to eq(retain_months)
         end
       end
 

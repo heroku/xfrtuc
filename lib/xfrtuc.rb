@@ -100,6 +100,8 @@ module Xfrtuc
       from_name = opts.delete :from_name
       to_name = opts.delete :to_name
       log_input_url = opts.delete :log_input_url
+      num_keep = opts.delete :num_keep
+
       unless opts.empty?
         raise ArgumentError, "Unsupported option(s): #{opts.keys}"
       end
@@ -112,6 +114,7 @@ module Xfrtuc
                  to_name: to_name
                 }
       payload.merge!(log_input_url: log_input_url) unless log_input_url.nil?
+      payload.merge!(num_keep: num_keep) unless num_keep.nil?
 
       client.post("/transfers", payload)
     end
@@ -146,17 +149,23 @@ module Xfrtuc
       hour = opts.fetch :hour
       days = opts.fetch(:days, Date::DAYNAMES)
       timezone = opts.fetch(:timezone, 'UTC')
+      retain_weeks = opts.delete(:retain_weeks)
+      retain_months = opts.delete(:retain_months)
+
       [ :name, :callback_url, :hour, :days, :timezone ].each { |key| opts.delete key }
       unless opts.empty?
         raise ArgumentError, "Unsupported option(s): #{opts.keys}"
       end
 
-      client.post("/schedules",
-                  name: name,
-                  callback_url: callback_url,
-                  hour: hour,
-                  days: days,
-                  timezone: timezone)
+      sched_opts = { name: name,
+                     callback_url: callback_url,
+                     hour: hour,
+                     days: days,
+                     timezone: timezone }
+      sched_opts[:retain_weeks] = retain_weeks unless retain_weeks.nil?
+      sched_opts[:retain_months] = retain_months unless retain_months.nil?
+
+      client.post("/schedules", sched_opts)
     end
 
     def delete(id)
