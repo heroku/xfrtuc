@@ -304,7 +304,7 @@ module Xfrtuc
       path = path(env)
       group_name, sched_id = path.match(%r{\A/groups/(.*)/schedules(?:/(.*))?\z}) && [$1, $2]
       verb = verb(env)
-      if verb == 'POST'
+      if %w(POST PUT).include? verb
         body = body(env)
         sched = JSON.parse(body)
         unless sched_id.nil?

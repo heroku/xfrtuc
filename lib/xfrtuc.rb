@@ -41,6 +41,10 @@ module Xfrtuc
       JSON.parse(@resource[path].post(JSON.generate(data)))
     end
 
+    def put(path, data={})
+      JSON.parse(@resource[path].post(JSON.generate(data)))
+    end
+
     def delete(path)
       JSON.parse(@resource[path].delete)
     end
@@ -165,7 +169,7 @@ module Xfrtuc
       sched_opts[:retain_weeks] = retain_weeks unless retain_weeks.nil?
       sched_opts[:retain_months] = retain_months unless retain_months.nil?
 
-      client.post("/schedules", sched_opts)
+      client.put("/schedules", sched_opts)
     end
 
     def delete(id)
