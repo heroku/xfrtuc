@@ -42,7 +42,7 @@ module Xfrtuc
     end
 
     def put(path, data={})
-      JSON.parse(@resource[path].post(JSON.generate(data)))
+      JSON.parse(@resource[path].put(JSON.generate(data)))
     end
 
     def delete(path)
