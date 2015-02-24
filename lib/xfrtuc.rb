@@ -169,7 +169,7 @@ module Xfrtuc
       sched_opts[:retain_weeks] = retain_weeks unless retain_weeks.nil?
       sched_opts[:retain_months] = retain_months unless retain_months.nil?
 
-      client.put("/schedules", sched_opts)
+      client.put("/schedules/#{URI.encode(name)}", sched_opts)
     end
 
     def delete(id)
