@@ -105,6 +105,10 @@ module Xfrtuc
       to_name = opts.delete :to_name
       log_input_url = opts.delete :log_input_url
       num_keep = opts.delete :num_keep
+      from_bastion_host = opts.delete :from_bastion_host
+      from_bastion_key = opts.delete :from_bastion_key
+      to_bastion_host = opts.delete :to_bastion_host
+      to_bastion_key = opts.delete :to_bastion_key
 
       unless opts.empty?
         raise ArgumentError, "Unsupported option(s): #{opts.keys}"
@@ -119,7 +123,10 @@ module Xfrtuc
                 }
       payload.merge!(log_input_url: log_input_url) unless log_input_url.nil?
       payload.merge!(num_keep: num_keep) unless num_keep.nil?
-
+      payload.merge!(from_bastion_host: from_bastion_host) unless from_bastion_host.nil?
+      payload.merge!(from_bastion_key: from_bastion_key) unless from_bastion_key.nil?
+      payload.merge!(to_bastion_host: to_bastion_host) unless to_bastion_host.nil?
+      payload.merge!(to_bastion_key: to_bastion_key) unless to_bastion_key.nil?
       client.post("/transfers", payload)
     end
 
