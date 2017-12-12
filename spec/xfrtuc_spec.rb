@@ -401,7 +401,7 @@ module Xfrtuc
     let(:client)      { Client.new(username, password, "https://#{host}") }
 
     before do
-      ShamRack.mount(fakesferatu, host, 443)
+      ShamRack.at(host, 443).mount(fakesferatu)
     end
 
     after do

@@ -7,35 +7,36 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
-    diff-lcs (1.2.5)
-    domain_name (0.5.20160216)
+    diff-lcs (1.3)
+    domain_name (0.5.20170404)
       unf (>= 0.0.5, < 1.0.0)
-    http-cookie (1.0.2)
+    http-cookie (1.0.3)
       domain_name (~> 0.5)
-    mime-types (2.99.1)
+    mime-types (2.99.3)
     netrc (0.11.0)
-    rack (1.5.2)
+    rack (2.0.3)
     rest-client (1.8.0)
       http-cookie (>= 1.0.2, < 2.0)
       mime-types (>= 1.16, < 3.0)
       netrc (~> 0.7)
-    rspec (3.0.0)
-      rspec-core (~> 3.0.0)
-      rspec-expectations (~> 3.0.0)
-      rspec-mocks (~> 3.0.0)
-    rspec-core (3.0.4)
-      rspec-support (~> 3.0.0)
-    rspec-expectations (3.0.4)
+    rspec (3.7.0)
+      rspec-core (~> 3.7.0)
+      rspec-expectations (~> 3.7.0)
+      rspec-mocks (~> 3.7.0)
+    rspec-core (3.7.0)
+      rspec-support (~> 3.7.0)
+    rspec-expectations (3.7.0)
       diff-lcs (>= 1.2.0, < 2.0)
-      rspec-support (~> 3.0.0)
-    rspec-mocks (3.0.4)
-      rspec-support (~> 3.0.0)
-    rspec-support (3.0.4)
-    sham_rack (1.3.6)
+      rspec-support (~> 3.7.0)
+    rspec-mocks (3.7.0)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.7.0)
+    rspec-support (3.7.0)
+    sham_rack (1.4.1)
       rack
     unf (0.1.4)
       unf_ext
-    unf_ext (0.0.7.2)
+    unf_ext (0.0.7.4)
 
 PLATFORMS
   ruby
@@ -45,5 +46,8 @@ DEPENDENCIES
   sham_rack (~> 1.3)
   xfrtuc!
 
+RUBY VERSION
+   ruby 2.4.2p198
+
 BUNDLED WITH
-   1.11.2
+   1.16.0
