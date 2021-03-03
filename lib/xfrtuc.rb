@@ -29,7 +29,7 @@ module Xfrtuc
         @group_client ||= Xfrtuc::Group.new(self)
       else
         self.class.new(@username, @password,
-                       @base_url + "/groups/#{URI.encode(name)}")
+                       @base_url + "/groups/#{CGI.escape(name)}")
       end
     end
 
@@ -64,7 +64,7 @@ module Xfrtuc
     def initialize(client); super; end
 
     def info(name)
-      client.get("/groups/#{URI.encode(name)}")
+      client.get("/groups/#{CGI.escape(name)}")
     end
 
     def list
@@ -76,7 +76,7 @@ module Xfrtuc
     end
 
     def delete(name)
-      client.delete("/groups/#{URI.encode(name)}")
+      client.delete("/groups/#{CGI.escape(name)}")
     end
   end
 
@@ -123,15 +123,15 @@ module Xfrtuc
     end
 
     def delete(id)
-      client.delete("/transfers/#{URI.encode(id)}")
+      client.delete("/transfers/#{CGI.escape(id)}")
     end
 
     def cancel(id)
-      client.post("/transfers/#{URI.encode(id)}/actions/cancel")
+      client.post("/transfers/#{CGI.escape(id)}/actions/cancel")
     end
 
     def public_url(id, opts={})
-      client.post("/transfers/#{URI.encode(id)}/actions/public-url", opts)
+      client.post("/transfers/#{CGI.escape(id)}/actions/public-url", opts)
     end
   end
 
@@ -168,11 +168,11 @@ module Xfrtuc
       sched_opts[:retain_weeks] = retain_weeks unless retain_weeks.nil?
       sched_opts[:retain_months] = retain_months unless retain_months.nil?
 
-      client.put("/schedules/#{URI.encode(name)}", sched_opts)
+      client.put("/schedules/#{CGI.escape(name)}", sched_opts)
     end
 
     def delete(id)
-      client.delete("/schedules/#{URI.encode(id)}")
+      client.delete("/schedules/#{CGI.escape(id)}")
     end
   end
 end

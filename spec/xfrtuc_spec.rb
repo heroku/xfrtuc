@@ -368,7 +368,7 @@ module Xfrtuc
           group_client = client.group(group_name)
           expect(group_client).to be_instance_of(Client)
           expect(group_client.base_url).to eq(client.base_url +
-                                              "/groups/#{URI.encode(group_name)}")
+                                              "/groups/#{CGI.escape(group_name)}")
         end
       end
 
