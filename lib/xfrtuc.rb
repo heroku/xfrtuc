@@ -105,6 +105,7 @@ module Xfrtuc
       to_name = opts.delete :to_name
       log_input_url = opts.delete :log_input_url
       num_keep = opts.delete :num_keep
+      num_tries = opts.delete :num_tries
 
       unless opts.empty?
         raise ArgumentError, "Unsupported option(s): #{opts.keys}"
@@ -119,6 +120,7 @@ module Xfrtuc
                 }
       payload.merge!(log_input_url: log_input_url) unless log_input_url.nil?
       payload.merge!(num_keep: num_keep) unless num_keep.nil?
+      payload.merge!(num_tries: num_tries) unless num_tries.nil?
       client.post("/transfers", payload)
     end
 
