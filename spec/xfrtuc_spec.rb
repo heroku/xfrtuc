@@ -355,7 +355,7 @@ module Xfrtuc
     end
   end
 
-  describe Client do
+  RSpec.describe Client do
     let(:username) { 'reginald' }
     let(:password) { 'hunter2' }
     let(:client)   { Client.new(username, password) }
@@ -392,7 +392,7 @@ module Xfrtuc
     end
   end
 
-  describe "api interactions" do
+  RSpec.describe "api interactions" do
     let(:username)    { 'vivian' }
     let(:password)    { 'hunter2' }
     let(:user)        { User.new(username, password) }
