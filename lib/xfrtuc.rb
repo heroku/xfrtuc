@@ -1,5 +1,7 @@
+require 'cgi'
 require 'json'
-require 'rest_client'
+require 'net/http'
+require 'uri'
 
 module Xfrtuc
   class Client
@@ -9,11 +11,6 @@ module Xfrtuc
       @base_url = base_url
       @username = username
       @password = password
-      @resource = RestClient::Resource.new(base_url,
-                                           user: username,
-                                           password: password,
-                                           headers: { content_type: 'application/json',
-                                                     accept: 'application/json' })
     end
 
     def transfer
@@ -34,19 +31,46 @@ module Xfrtuc
     end
 
     def get(path, params={})
-      JSON.parse(@resource[path].get(params))
+      uri = build_uri(path)
+      uri.query = URI.encode_www_form(params[:params]) if params[:params]
+      request = Net::HTTP::Get.new(uri)
+      execute(uri, request)
     end
 
     def post(path, data={})
-      JSON.parse(@resource[path].post(JSON.generate(data)))
+      uri = build_uri(path)
+      request = Net::HTTP::Post.new(uri)
+      request.body = JSON.generate(data)
+      execute(uri, request)
     end
 
     def put(path, data={})
-      JSON.parse(@resource[path].put(JSON.generate(data)))
+      uri = build_uri(path)
+      request = Net::HTTP::Put.new(uri)
+      request.body = JSON.generate(data)
+      execute(uri, request)
     end
 
     def delete(path)
-      JSON.parse(@resource[path].delete)
+      uri = build_uri(path)
+      request = Net::HTTP::Delete.new(uri)
+      execute(uri, request)
+    end
+
+    private
+
+    def build_uri(path)
+      URI.parse("#{@base_url}#{path}")
+    end
+
+    def execute(uri, request)
+      request.basic_auth(@username, @password)
+      request['Content-Type'] = 'application/json'
+      request['Accept'] = 'application/json'
+      http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = uri.scheme == 'https'
+      response = http.request(request)
+      JSON.parse(response.body)
     end
   end
 

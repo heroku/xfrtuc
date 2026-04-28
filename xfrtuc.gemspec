@@ -15,8 +15,6 @@ Gem::Specification.new do |gem|
   gem.version       = Xfrtuc::VERSION
   gem.license       = "MIT"
 
-  gem.add_runtime_dependency 'rest-client', '~> 2.0'
-
   gem.add_development_dependency 'rspec', '~> 3.0'
   gem.add_development_dependency 'simplecov'
   gem.add_development_dependency 'webmock'

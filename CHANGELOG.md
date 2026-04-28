@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 
 - Replaced `sham_rack` / `FakeTransferatu` test fake with WebMock stubs.
+- Replaced `rest-client` with `Net::HTTP`
 - Updated rspec configuration.
 - Switched from CircleCI to GitHub Actions for CI.
 
