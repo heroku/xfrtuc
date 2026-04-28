@@ -1,360 +1,7 @@
 require 'securerandom'
 require 'spec_helper'
-require 'sham_rack'
 
 module Xfrtuc
-  User = Struct.new(:name, :password)
-  class FakeTransferatu
-    attr_reader :groups
-
-    def headers
-      { content_type: 'application/json' }
-    end
-
-    def initialize(*users)
-      @groups = []
-      @transfers = {}
-      @schedules = {}
-      @users = users
-    end
-
-    def active_groups
-      @groups.reject { |g| g[:deleted] }
-    end
-
-    def find_transfer(group_name, &block)
-      @transfers[group_name].find(&block)
-    end
-
-    def last_transfer(group_name)
-      @transfers[group_name].last
-    end
-
-    def last_schedule(group_name)
-      @schedules[group_name].last
-    end
-
-    def add_group(name, log_url=nil)
-      existing_group = @groups.find { |g| g[:name] == name }
-      if existing_group
-        if existing_group[:deleted]
-          # undelete
-          existing_group.delete(:deleted)
-          [201, headers, [ existing_group.to_json ] ]
-        else
-          [409, headers, [ { id: :conflict, message: "group #{name} already exists" }.to_json ] ]
-        end
-      else
-        group = { name: name, log_input_url: log_url }
-        @groups << group
-        @transfers[name] = []
-        @schedules[name] = []
-        [201, headers, [ group.to_json ] ]
-      end
-    end
-
-    def delete_group(name)
-      target = @groups.find { |g| g[:name] == name }
-      if target && target[:deleted]
-        [410, headers, []]
-      elsif target.nil?
-        [404, headers, []]
-      else
-        target[:deleted] = true
-        [200, headers, [target.to_json]]
-      end
-    end
-
-    def list_groups
-      [200, headers, [@groups.to_json]]
-    end
-
-    def get_group(name)
-      [200, headers, [@groups.find { |g| g[:name] == name }.to_json]]
-    end
-
-    def list_transfers(group_name)
-      group = @groups.find { |g| g[:name] == group_name }
-      if group.nil?
-        [404, headers, []]
-      elsif group[:deleted]
-        [410, headers, []]
-      else
-        transfers = @transfers[group_name]
-        [200, headers, [transfers.to_json]]
-      end
-    end
-
-    def get_transfer(group_name, xfer_id, verbose=false)
-      group = @groups.find { |g| g[:name] == group_name }
-      if group.nil?
-        [404, headers, []]
-      elsif group[:deleted]
-        [409, headers, []]
-      else
-        transfer = @transfers[group_name].find { |xfer| xfer[:uuid] == xfer_id }
-        if verbose
-          result = transfer.dup
-          result[:logs] = []
-          transfer = result
-        end
-        [200, headers, [transfer.to_json]]
-      end
-    end
-
-    def add_transfer(group_name, transfer)
-      unless @transfers.has_key? group_name
-        return [404, headers, []]
-      end
-      xfer = { uuid: SecureRandom.uuid }
-      %w(from_type from_url from_name to_type to_url to_name log_input_url).each do |key|
-        xfer[key.to_sym] = transfer[key]
-      end
-      if transfer.has_key? 'num_keep'
-        xfer[:num_keep] = transfer['num_keep']
-      end
-
-      @transfers[group_name] << xfer
-      [201, {}, [xfer.to_json]]
-    end
-
-    def delete_transfer(group_name, xfer_id)
-      unless @transfers.has_key? group_name
-        return [404, headers, []]
-      end
-      xfer = @transfers[group_name].find { |item| item[:uuid] == xfer_id }
-      if xfer.nil?
-        return [404, headers, []]
-      else
-        @transfers[group_name].delete xfer
-        return [200, headers, [ xfer.to_json ]]
-      end
-    end
-
-    def take_transfer_action(action, args, group_name, xfer_id)
-      unless @transfers.has_key? group_name
-        return [404, headers, []]
-      end
-      xfer = @transfers[group_name].find { |item| item[:uuid] == xfer_id }
-      if xfer.nil?
-        return [404, headers, []]
-      else
-        case action
-        when 'cancel' then
-          now = Time.now
-          xfer[:canceled_at] = now
-          return [201, headers, [ { canceled_at: now }.to_json ]]
-        when 'public-url' then
-          expires_at = if args.has_key? 'ttl'
-                         Time.now + args['ttl'].to_i
-                       else
-                         Time.now + (10 * 60)
-                       end
-          url = "https://example.com/backup/#{xfer[:uuid]}"
-          return [201, headers, [ { url: url, expires_at: expires_at }.to_json ]]
-        else
-          return [404, headers, []]
-        end
-      end
-    end
-
-    def add_schedule(group_name, schedule)
-      unless @schedules.has_key? group_name
-        return [404, headers, []]
-      end
-      sched = { uuid: SecureRandom.uuid }
-      %w(name callback_url days hour timezone).each do |key|
-        sched[key.to_sym] = schedule[key]
-      end
-      %w(retain_weeks retain_months).each do |key|
-        sched[key.to_sym] = schedule[key] if schedule.has_key? key
-      end
-      @schedules[group_name] << sched
-      [201, {}, [sched.to_json]]
-    end
-
-    def delete_schedule(group_name, schedule_id)
-      unless @schedules.has_key? group_name
-        return [404, headers, []]
-      end
-      schedule = @schedules[group_name].find { |item| item[:uuid] == schedule_id }
-      if schedule.nil?
-        return [404, headers, []]
-      else
-        @schedules[group_name].delete schedule
-        return [200, headers, [ schedule.to_json ]]
-      end
-    end
-
-    def list_schedules(group_name)
-      group = @groups.find { |g| g[:name] == group_name }
-      if group.nil?
-        [404, headers, []]
-      elsif group[:deleted]
-        [410, headers, []]
-      else
-        schedules = @schedules[group_name]
-        [200, headers, [schedules.to_json]]
-      end
-    end
-
-    def get_schedule(group_name, sched_id)
-      group = @groups.find { |g| g[:name] == group_name }
-      if group.nil?
-        [404, headers, []]
-      elsif group[:deleted]
-        [410, headers, []]
-      else
-        sched = @schedules[group_name].find { |s| s[:uuid] == sched_id }
-        if sched.nil?
-          [404, headers, []]
-        else
-          [200, headers, [sched.to_json]]
-        end
-      end
-    end
-
-    def call(env)
-      unless verify_auth(env)
-        return [401, headers, ["Not authorized"]]
-      end
-      case path(env)
-      when %r{/groups/[^/]+/transfers/[^/]+/actions} then
-        transfers_actions_endpoint(env)
-      when %r{/groups/[^/]+/transfers} then
-        transfers_endpoint(env)
-      when %r{/groups/[^/]+/schedules} then
-        schedules_endpoint(env)
-      when %r{/groups} then
-        groups_endpoint(env)
-      else
-        [404, headers, []]
-      end
-    end
-
-    def transfers_actions_endpoint(env)
-      path = path(env)
-      group_name, xfer_id, action =
-        path.match(%r{\A/groups/(.*)/transfers/(.*)/actions/(.*)\z}) && [$1, $2, $3]
-      verb = verb(env)
-      if verb == 'POST'
-        body = body(env)
-        args = JSON.parse(body) unless body.empty?
-        take_transfer_action(action, args, group_name, xfer_id)
-      else
-        [405, headers, []]
-      end
-    end
-
-    def transfers_endpoint(env)
-      path = path(env)
-      group_name, xfer_id = path.match(%r{\A/groups/(.*)/transfers(?:/(.*))?\z}) && [$1, $2]
-      verb = verb(env)
-      if verb == 'POST'
-        body = body(env)
-        xfer = JSON.parse(body)
-        unless xfer_id.nil?
-          [405, headers, []]
-        end
-        add_transfer(group_name, xfer)
-      elsif verb == 'DELETE'
-        unless group_name && xfer_id
-          return [404, headers, []]
-        end
-        delete_transfer(group_name, xfer_id)
-      elsif verb == 'GET'
-        if xfer_id.nil?
-          list_transfers(group_name)
-        else
-          get_transfer(group_name, xfer_id, params(env)['verbose'] == 'true')
-        end
-      else
-        [405, headers, []]
-      end
-    end
-
-    def groups_endpoint(env)
-      path = path(env)
-      verb = verb(env)
-
-      group_name = path.match(%r{\A/groups/(.*)\z}) && $1
-
-      if verb == 'GET'
-        if group_name.nil?
-          list_groups
-        else
-          get_group(group_name)
-        end
-      elsif verb == 'POST'
-        body = body(env)
-        data = JSON.parse(body)
-        add_group(data["name"], data["log_input_url"])
-      elsif verb == 'DELETE'
-        name = path.match(%r{\A/groups/(.*)\z}) && $1
-        unless name
-          return [404, headers, []]
-        end
-        delete_group(name)
-      else
-        [405, headers, []]
-      end
-    end
-
-    def schedules_endpoint(env)
-      path = path(env)
-      group_name, sched_id = path.match(%r{\A/groups/(.*)/schedules(?:/(.*))?\z}) && [$1, $2]
-      verb = verb(env)
-      if %w(POST PUT).include? verb
-        body = body(env)
-        sched = JSON.parse(body)
-        unless sched_id.nil?
-          [405, headers, []]
-        end
-        add_schedule(group_name, sched)
-      elsif verb == 'DELETE'
-        unless group_name && sched_id
-          return [404, headers, []]
-        end
-        delete_schedule(group_name, sched_id)
-      elsif verb == 'GET'
-        if sched_id.nil?
-          list_schedules(group_name)
-        else
-          get_schedule(group_name, sched_id)
-        end
-      else
-        [405, headers, []]
-      end
-    end
-
-    private
-    def verify_auth(env)
-      auth = Rack::Auth::Basic::Request.new(env)
-      if auth.provided? && auth.basic?
-        user, password = auth.credentials
-        @users.any? { |u| u.name == user && u.password == password }
-      end
-    end
-
-    def path(rack_env)
-      rack_env['PATH_INFO']
-    end
-
-    def verb(rack_env)
-      rack_env['REQUEST_METHOD']
-    end
-
-    def params(rack_env)
-      Rack::Utils.parse_nested_query rack_env['QUERY_STRING']
-    end
-
-    def body(rack_env)
-      raw_body = rack_env["rack.input"].read
-      rack_env["rack.input"].rewind
-      raw_body
-    end
-  end
-
   RSpec.describe Client do
     let(:username) { 'reginald' }
     let(:password) { 'hunter2' }
@@ -393,20 +40,11 @@ module Xfrtuc
   end
 
   RSpec.describe "api interactions" do
-    let(:username)    { 'vivian' }
-    let(:password)    { 'hunter2' }
-    let(:user)        { User.new(username, password) }
-    let(:fakesferatu) { FakeTransferatu.new(user) }
-    let(:host)        { 'transferatu.example.com' }
-    let(:client)      { Client.new(username, password, "https://#{host}") }
-
-    before do
-      ShamRack.at(host, 443).mount(fakesferatu)
-    end
-
-    after do
-      ShamRack.unmount_all
-    end
+    let(:username) { 'vivian' }
+    let(:password) { 'hunter2' }
+    let(:host)     { 'transferatu.example.com' }
+    let(:base_url) { "https://#{host}" }
+    let(:client)   { Client.new(username, password, base_url) }
 
     describe Group do
       let(:group_name)    { "edna" }
@@ -414,20 +52,25 @@ module Xfrtuc
 
       describe "#create" do
         it "creates a new group" do
-          client.group.create("edna", log_input_url)
-          group = fakesferatu.groups.last
-          expect(group[:name]).to eq(group_name)
-          expect(group[:log_input_url]).to eq(log_input_url)
+          WebMock.stub_request(:post, "#{base_url}/groups")
+            .with(basic_auth: [username, password],
+                  body: { name: group_name, log_input_url: log_input_url })
+            .to_return_json(status: 201,
+                            body: { name: group_name, log_input_url: log_input_url })
+
+          result = client.group.create(group_name, log_input_url)
+          expect(result["name"]).to eq(group_name)
+          expect(result["log_input_url"]).to eq(log_input_url)
         end
       end
 
       describe "#list" do
-        before do
-          fakesferatu.add_group('g1')
-          fakesferatu.add_group('g2')
-        end
-
         it "lists existing groups" do
+          groups = [{ name: 'g1' }, { name: 'g2' }]
+          WebMock.stub_request(:get, "#{base_url}/groups")
+            .with(basic_auth: [username, password])
+            .to_return_json(status: 200, body: groups)
+
           result = client.group.list
           expect(result.count).to eq(2)
           expect(result.first["name"]).to eq('g1')
@@ -436,11 +79,12 @@ module Xfrtuc
       end
 
       describe "#info" do
-        before do
-          fakesferatu.add_group(group_name, log_input_url)
-        end
-
         it "returns details for the given group" do
+          group = { name: group_name, log_input_url: log_input_url }
+          WebMock.stub_request(:get, "#{base_url}/groups/#{group_name}")
+            .with(basic_auth: [username, password])
+            .to_return_json(status: 200, body: group)
+
           info = client.group.info(group_name)
           expect(info["name"]).to eq(group_name)
           expect(info["log_input_url"]).to eq(log_input_url)
@@ -448,14 +92,13 @@ module Xfrtuc
       end
 
       describe "#delete" do
-        before do
-          fakesferatu.add_group(group_name, log_input_url)
-        end
-
         it "deletes the given group" do
-          client.group.delete(group_name)
-          deleted_group = fakesferatu.groups.find { |g| g[:name] == group_name }
-          expect(deleted_group[:deleted]).to be true
+          WebMock.stub_request(:delete, "#{base_url}/groups/#{group_name}")
+            .with(basic_auth: [username, password])
+            .to_return_json(status: 200, body: { name: group_name, deleted: true })
+
+          result = client.group.delete(group_name)
+          expect(result["name"]).to eq(group_name)
         end
       end
     end
@@ -466,45 +109,63 @@ module Xfrtuc
                          from_name: 'earl', from_type: 'pg_dump',
                          to_url: 'postgres:///test2',
                          to_name: 'mildred', to_type: 'pg_restore' } }
-
-      before do
-        fakesferatu.add_group(g)
-      end
+      let(:xfer_id)   { SecureRandom.uuid }
 
       describe "#create" do
         it "creates a new transfer" do
-          client.group(g).transfer.create(xfer_data)
-          xfer = fakesferatu.last_transfer(g)
-          xfer_data.each do |k,v|
-            expect(xfer[k]).to eq(v)
+          response = xfer_data.merge(uuid: xfer_id)
+          WebMock.stub_request(:post, "#{base_url}/groups/#{g}/transfers")
+            .with(basic_auth: [username, password])
+            .to_return_json(status: 201, body: response)
+
+          result = client.group(g).transfer.create(xfer_data)
+          xfer_data.each do |k, v|
+            expect(result[k.to_s]).to eq(v)
           end
         end
 
         it "accepts an optional log_input_url" do
           log_url = "https://example.com/logs"
-          client.group(g).transfer.create(xfer_data.merge(log_input_url: log_url))
-          xfer = fakesferatu.last_transfer(g)
-          expect(xfer[:log_input_url]).to eq(log_url)
+          response = xfer_data.merge(uuid: xfer_id, log_input_url: log_url)
+          WebMock.stub_request(:post, "#{base_url}/groups/#{g}/transfers")
+            .with(basic_auth: [username, password],
+                  body: hash_including("log_input_url" => log_url))
+            .to_return_json(status: 201, body: response)
+
+          result = client.group(g).transfer.create(xfer_data.merge(log_input_url: log_url))
+          expect(result["log_input_url"]).to eq(log_url)
         end
 
         it "accepts an optional num_keep" do
           num_keep = 3
-          client.group(g).transfer.create(xfer_data.merge(num_keep: num_keep))
-          xfer = fakesferatu.last_transfer(g)
-          expect(xfer[:num_keep]).to eq(num_keep)
+          response = xfer_data.merge(uuid: xfer_id, num_keep: num_keep)
+          WebMock.stub_request(:post, "#{base_url}/groups/#{g}/transfers")
+            .with(basic_auth: [username, password],
+                  body: hash_including("num_keep" => num_keep))
+            .to_return_json(status: 201, body: response)
+
+          result = client.group(g).transfer.create(xfer_data.merge(num_keep: num_keep))
+          expect(result["num_keep"]).to eq(num_keep)
+        end
+
+        it "raises ArgumentError for unsupported options" do
+          expect {
+            client.group(g).transfer.create(xfer_data.merge(bogus: 'value'))
+          }.to raise_error(ArgumentError, /Unsupported option/)
         end
       end
 
       describe "#list" do
-        before do
-          2.times { fakesferatu.add_transfer(g, Hash[xfer_data.map { |k, v| [k.to_s, v] }]) }
-        end
-
         it "lists existing transfers" do
-          xfers = client.group(g).transfer.list
-          expect(xfers.count).to eq(2)
-          xfers.each do |xfer|
-            xfer_data.each do |k,v|
+          xfers = 2.times.map { xfer_data.merge(uuid: SecureRandom.uuid) }
+          WebMock.stub_request(:get, "#{base_url}/groups/#{g}/transfers")
+            .with(basic_auth: [username, password])
+            .to_return_json(status: 200, body: xfers)
+
+          result = client.group(g).transfer.list
+          expect(result.count).to eq(2)
+          result.each do |xfer|
+            xfer_data.each do |k, v|
               expect(xfer[k.to_s]).to eq(v)
             end
           end
@@ -512,72 +173,90 @@ module Xfrtuc
       end
 
       describe "#info" do
-        before do
-          fakesferatu.add_transfer(g, Hash[xfer_data.map { |k, v| [k.to_s, v] }])
-        end
-
         it "gets info for an existing transfer" do
-          id = fakesferatu.last_transfer(g)[:uuid]
-          xfer = client.group(g).transfer.info(id)
-          xfer_data.each do |k,v|
+          response = xfer_data.merge(uuid: xfer_id)
+          WebMock.stub_request(:get, "#{base_url}/groups/#{g}/transfers/#{xfer_id}")
+            .with(basic_auth: [username, password],
+                  query: { "verbose" => "false" })
+            .to_return_json(status: 200, body: response)
+
+          xfer = client.group(g).transfer.info(xfer_id)
+          xfer_data.each do |k, v|
             expect(xfer[k.to_s]).to eq(v)
           end
           expect(xfer["logs"]).to be_nil
         end
 
         it "includes logs when verbose mode is requested" do
-          id = fakesferatu.last_transfer(g)[:uuid]
-          xfer = client.group(g).transfer.info(id, verbose: true)
-          xfer_data.each do |k,v|
+          response = xfer_data.merge(uuid: xfer_id, logs: [])
+          WebMock.stub_request(:get, "#{base_url}/groups/#{g}/transfers/#{xfer_id}")
+            .with(basic_auth: [username, password],
+                  query: { "verbose" => "true" })
+            .to_return_json(status: 200, body: response)
+
+          xfer = client.group(g).transfer.info(xfer_id, verbose: true)
+          xfer_data.each do |k, v|
             expect(xfer[k.to_s]).to eq(v)
           end
           expect(xfer["logs"]).not_to be_nil
         end
+
+        it "raises ArgumentError for unsupported options" do
+          expect {
+            client.group(g).transfer.info(xfer_id, bogus: 'value')
+          }.to raise_error(ArgumentError, /Unsupported option/)
+        end
       end
 
       describe "#delete" do
-        before do
-          fakesferatu.add_transfer(g, Hash[xfer_data.map { |k, v| [k.to_s, v] }])
-        end
-
         it "deletes the given transfer" do
-          id = fakesferatu.last_transfer(g)[:uuid]
-          client.group(g).transfer.delete(id)
-          expect(fakesferatu.last_transfer(g)).to be_nil
+          response = xfer_data.merge(uuid: xfer_id)
+          WebMock.stub_request(:delete, "#{base_url}/groups/#{g}/transfers/#{xfer_id}")
+            .with(basic_auth: [username, password])
+            .to_return_json(status: 200, body: response)
+
+          result = client.group(g).transfer.delete(xfer_id)
+          expect(result["uuid"]).to eq(xfer_id)
         end
       end
 
       describe "#cancel" do
-        before do
-          fakesferatu.add_transfer(g, Hash[xfer_data.map { |k, v| [k.to_s, v] }])
-        end
-
         it "cancels the given transfer" do
-          id = fakesferatu.last_transfer(g)[:uuid]
-          before = Time.now
-          cancel_data = client.group(g).transfer.cancel(id)
+          now = Time.now
+          WebMock.stub_request(:post, "#{base_url}/groups/#{g}/transfers/#{xfer_id}/actions/cancel")
+            .with(basic_auth: [username, password])
+            .to_return_json(status: 201, body: { canceled_at: now })
+
+          cancel_data = client.group(g).transfer.cancel(xfer_id)
           canceled_at = Time.parse(cancel_data["canceled_at"])
-          expect(canceled_at).to be_within(60).of(before)
+          expect(canceled_at).to be_within(60).of(now)
         end
       end
 
       describe "#public_url" do
-        before do
-          fakesferatu.add_transfer(g, Hash[xfer_data.map { |k, v| [k.to_s, v] }])
-        end
-
         it "provides a public url for the given transfer" do
-          id = fakesferatu.last_transfer(g)[:uuid]
-          url_data = client.group(g).transfer.public_url(id)
+          url = "https://example.com/backup/#{xfer_id}"
+          expires_at = Time.now + (10 * 60)
+          WebMock.stub_request(:post, "#{base_url}/groups/#{g}/transfers/#{xfer_id}/actions/public-url")
+            .with(basic_auth: [username, password])
+            .to_return_json(status: 201, body: { url: url, expires_at: expires_at })
+
+          url_data = client.group(g).transfer.public_url(xfer_id)
           expect { URI.parse(url_data["url"]) }.not_to raise_error
         end
 
         it "supports an optional ttl parameter" do
-          id = fakesferatu.last_transfer(g)[:uuid]
-          before = Time.now
-          url_data = client.group(g).transfer.public_url(id, ttl: 5 * 60)
-          expires_at = Time.parse(url_data["expires_at"])
-          expect(expires_at).to be_within(60).of(before + (5 * 60))
+          url = "https://example.com/backup/#{xfer_id}"
+          now = Time.now
+          expires_at = now + (5 * 60)
+          WebMock.stub_request(:post, "#{base_url}/groups/#{g}/transfers/#{xfer_id}/actions/public-url")
+            .with(basic_auth: [username, password],
+                  body: { ttl: 300 }.to_json)
+            .to_return_json(status: 201, body: { url: url, expires_at: expires_at })
+
+          url_data = client.group(g).transfer.public_url(xfer_id, ttl: 5 * 60)
+          expires = Time.parse(url_data["expires_at"])
+          expect(expires).to be_within(60).of(now + (5 * 60))
         end
       end
     end
@@ -589,41 +268,53 @@ module Xfrtuc
                           hour: 13,
                           days: Date::DAYNAMES,
                           timezone: 'UTC' } }
-
-      before do
-        fakesferatu.add_group(g)
-      end
+      let(:sched_id)   { SecureRandom.uuid }
 
       describe "#create" do
         it "creates a new schedule" do
-          client.group(g).schedule.create(sched_data)
-          sched = fakesferatu.last_schedule(g)
-          sched_data.each do |k,v|
-            expect(sched[k]).to eq(v)
+          response = sched_data.merge(uuid: sched_id)
+          WebMock.stub_request(:put, "#{base_url}/groups/#{g}/schedules/#{CGI.escape(sched_data[:name])}")
+            .with(basic_auth: [username, password])
+            .to_return_json(status: 201, body: response)
+
+          result = client.group(g).schedule.create(sched_data)
+          sched_data.each do |k, v|
+            expect(result[k.to_s]).to eq(v)
           end
         end
 
         it "accepts an optional retain_weeks and retain_months" do
           retain_weeks = 7
           retain_months = 8
-          client.group(g).schedule.create(sched_data.merge(retain_weeks: retain_weeks,
-                                                           retain_months: retain_months))
-          sched = fakesferatu.last_schedule(g)
-          expect(sched[:retain_weeks]).to eq(retain_weeks)
-          expect(sched[:retain_months]).to eq(retain_months)
+          response = sched_data.merge(uuid: sched_id, retain_weeks: retain_weeks, retain_months: retain_months)
+          WebMock.stub_request(:put, "#{base_url}/groups/#{g}/schedules/#{CGI.escape(sched_data[:name])}")
+            .with(basic_auth: [username, password],
+                  body: hash_including("retain_weeks" => retain_weeks, "retain_months" => retain_months))
+            .to_return_json(status: 201, body: response)
+
+          result = client.group(g).schedule.create(sched_data.merge(retain_weeks: retain_weeks, retain_months: retain_months))
+          expect(result["retain_weeks"]).to eq(retain_weeks)
+          expect(result["retain_months"]).to eq(retain_months)
+        end
+
+        it "raises ArgumentError for unsupported options" do
+          expect {
+            client.group(g).schedule.create(sched_data.merge(bogus: 'value'))
+          }.to raise_error(ArgumentError, /Unsupported option/)
         end
       end
 
       describe "#list" do
-        before do
-          2.times { fakesferatu.add_schedule(g, Hash[sched_data.map { |k, v| [k.to_s, v] }]) }
-        end
-
         it "lists existing schedules" do
-          scheds = client.group(g).schedule.list
-          expect(scheds.count).to eq(2)
-          scheds.each do |sched|
-            sched_data.each do |k,v|
+          scheds = 2.times.map { sched_data.merge(uuid: SecureRandom.uuid) }
+          WebMock.stub_request(:get, "#{base_url}/groups/#{g}/schedules")
+            .with(basic_auth: [username, password])
+            .to_return_json(status: 200, body: scheds)
+
+          result = client.group(g).schedule.list
+          expect(result.count).to eq(2)
+          result.each do |sched|
+            sched_data.each do |k, v|
               expect(sched[k.to_s]).to eq(v)
             end
           end
@@ -631,28 +322,28 @@ module Xfrtuc
       end
 
       describe "#info" do
-        before do
-          fakesferatu.add_schedule(g, Hash[sched_data.map { |k, v| [k.to_s, v] }])
-        end
-
         it "gets info for an existing schedule" do
-          id = fakesferatu.last_schedule(g)[:uuid]
-          sched = client.group(g).schedule.info(id)
-          sched_data.each do |k,v|
+          response = sched_data.merge(uuid: sched_id)
+          WebMock.stub_request(:get, "#{base_url}/groups/#{g}/schedules/#{sched_id}")
+            .with(basic_auth: [username, password])
+            .to_return_json(status: 200, body: response)
+
+          sched = client.group(g).schedule.info(sched_id)
+          sched_data.each do |k, v|
             expect(sched[k.to_s]).to eq(v)
           end
         end
       end
 
       describe "#delete" do
-        before do
-          fakesferatu.add_schedule(g, Hash[sched_data.map { |k, v| [k.to_s, v] }])
-        end
-
         it "deletes the given schedule" do
-          id = fakesferatu.last_schedule(g)[:uuid]
-          client.group(g).schedule.delete(id)
-          expect(fakesferatu.last_schedule(g)).to be_nil
+          response = sched_data.merge(uuid: sched_id)
+          WebMock.stub_request(:delete, "#{base_url}/groups/#{g}/schedules/#{sched_id}")
+            .with(basic_auth: [username, password])
+            .to_return_json(status: 200, body: response)
+
+          result = client.group(g).schedule.delete(sched_id)
+          expect(result["uuid"]).to eq(sched_id)
         end
       end
     end
