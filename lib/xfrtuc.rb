@@ -2,6 +2,7 @@ require 'cgi'
 require 'json'
 require 'net/http'
 require 'uri'
+require 'xfrtuc/errors'
 
 module Xfrtuc
   class Client
@@ -63,6 +64,14 @@ module Xfrtuc
       URI.parse("#{@base_url}#{path}")
     end
 
+    HTTP_ERROR_MAP = {
+      400 => HTTP::BadRequest,
+      404 => HTTP::NotFound,
+      409 => HTTP::Conflict,
+      410 => HTTP::Gone,
+      503 => HTTP::ServiceUnavailable,
+    }.freeze
+
     def execute(uri, request)
       request.basic_auth(@username, @password)
       request['Content-Type'] = 'application/json'
@@ -70,7 +79,20 @@ module Xfrtuc
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = uri.scheme == 'https'
       response = http.request(request)
+      status = response.code.to_i
+      unless (200..299).cover?(status)
+        error_class = HTTP_ERROR_MAP.fetch(status) do
+          status >= 500 ? HTTP::ServerError : HTTP::ClientError
+        end
+        raise error_class, "Expected 2xx, got #{response.code}"
+      end
+      return nil if response.body.nil? || response.body.empty?
       JSON.parse(response.body)
+    rescue Errno::ECONNRESET => e
+      raise HTTP::ConnectionResetError, e.message
+    rescue ::SocketError, Errno::ECONNREFUSED, Errno::EHOSTUNREACH,
+           Errno::ENETUNREACH, Net::OpenTimeout, Net::ReadTimeout => e
+      raise HTTP::SocketError, e.message
     end
   end
 

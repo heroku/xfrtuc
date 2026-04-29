@@ -261,6 +261,139 @@ module Xfrtuc
       end
     end
 
+    describe "error handling" do
+      it "does not raise for 2xx responses" do
+        [200, 201, 204].each do |status|
+          WebMock.stub_request(:get, "#{base_url}/groups")
+            .with(basic_auth: [username, password])
+            .to_return_json(status: status, body: [])
+
+          expect { client.group.list }.not_to raise_error
+          WebMock.reset!
+        end
+      end
+
+      it "raises BadRequest for 400" do
+        WebMock.stub_request(:get, "#{base_url}/groups")
+          .with(basic_auth: [username, password])
+          .to_return(status: 400, body: '{"error":"bad request"}')
+
+        expect { client.group.list }.to raise_error(Xfrtuc::HTTP::BadRequest, /got 400/)
+      end
+
+      it "raises NotFound for 404" do
+        WebMock.stub_request(:get, "#{base_url}/groups")
+          .with(basic_auth: [username, password])
+          .to_return(status: 404, body: '{"error":"not found"}')
+
+        expect { client.group.list }.to raise_error(Xfrtuc::HTTP::NotFound, /got 404/)
+      end
+
+      it "raises Conflict for 409" do
+        WebMock.stub_request(:get, "#{base_url}/groups")
+          .with(basic_auth: [username, password])
+          .to_return(status: 409, body: '{"error":"conflict"}')
+
+        expect { client.group.list }.to raise_error(Xfrtuc::HTTP::Conflict, /got 409/)
+      end
+
+      it "raises Gone for 410" do
+        WebMock.stub_request(:get, "#{base_url}/groups")
+          .with(basic_auth: [username, password])
+          .to_return(status: 410, body: '{"error":"gone"}')
+
+        expect { client.group.list }.to raise_error(Xfrtuc::HTTP::Gone, /got 410/)
+      end
+
+      it "raises ClientError for other 4xx responses" do
+        WebMock.stub_request(:get, "#{base_url}/groups")
+          .with(basic_auth: [username, password])
+          .to_return(status: 422, body: '{"error":"unprocessable"}')
+
+        expect { client.group.list }.to raise_error(Xfrtuc::HTTP::ClientError, /got 422/)
+      end
+
+      it "raises ServerError for 500" do
+        WebMock.stub_request(:get, "#{base_url}/groups")
+          .with(basic_auth: [username, password])
+          .to_return(status: 500, body: '{"error":"internal"}')
+
+        expect { client.group.list }.to raise_error(Xfrtuc::HTTP::ServerError, /got 500/)
+      end
+
+      it "raises ServiceUnavailable for 503" do
+        WebMock.stub_request(:get, "#{base_url}/groups")
+          .with(basic_auth: [username, password])
+          .to_return(status: 503, body: '{"error":"unavailable"}')
+
+        expect { client.group.list }.to raise_error(Xfrtuc::HTTP::ServiceUnavailable, /got 503/)
+      end
+
+      it "ServiceUnavailable is rescuable as ServerError" do
+        WebMock.stub_request(:get, "#{base_url}/groups")
+          .with(basic_auth: [username, password])
+          .to_return(status: 503, body: '{"error":"unavailable"}')
+
+        expect { client.group.list }.to raise_error(Xfrtuc::HTTP::ServerError)
+      end
+
+      it "raises ServerError for other 5xx responses" do
+        WebMock.stub_request(:get, "#{base_url}/groups")
+          .with(basic_auth: [username, password])
+          .to_return(status: 502, body: '{"error":"bad gateway"}')
+
+        expect { client.group.list }.to raise_error(Xfrtuc::HTTP::ServerError, /got 502/)
+      end
+
+      it "all HTTP errors are rescuable as Xfrtuc::HTTP::Error" do
+        WebMock.stub_request(:get, "#{base_url}/groups")
+          .with(basic_auth: [username, password])
+          .to_return(status: 500, body: '{"error":"internal"}')
+
+        expect { client.group.list }.to raise_error(Xfrtuc::HTTP::Error)
+      end
+
+      it "raises ConnectionResetError on ECONNRESET" do
+        WebMock.stub_request(:get, "#{base_url}/groups")
+          .with(basic_auth: [username, password])
+          .to_raise(Errno::ECONNRESET)
+
+        expect { client.group.list }.to raise_error(Xfrtuc::HTTP::ConnectionResetError)
+      end
+
+      it "raises SocketError on connection refused" do
+        WebMock.stub_request(:get, "#{base_url}/groups")
+          .with(basic_auth: [username, password])
+          .to_raise(Errno::ECONNREFUSED)
+
+        expect { client.group.list }.to raise_error(Xfrtuc::HTTP::SocketError)
+      end
+
+      it "raises SocketError on DNS failure" do
+        WebMock.stub_request(:get, "#{base_url}/groups")
+          .with(basic_auth: [username, password])
+          .to_raise(SocketError.new("getaddrinfo: Name or service not known"))
+
+        expect { client.group.list }.to raise_error(Xfrtuc::HTTP::SocketError)
+      end
+
+      it "raises SocketError on timeout" do
+        WebMock.stub_request(:get, "#{base_url}/groups")
+          .with(basic_auth: [username, password])
+          .to_timeout
+
+        expect { client.group.list }.to raise_error(Xfrtuc::HTTP::SocketError)
+      end
+
+      it "network errors are rescuable as Xfrtuc::HTTP::Error" do
+        WebMock.stub_request(:get, "#{base_url}/groups")
+          .with(basic_auth: [username, password])
+          .to_raise(Errno::ECONNREFUSED)
+
+        expect { client.group.list }.to raise_error(Xfrtuc::HTTP::Error)
+      end
+    end
+
     describe Schedule do
       let(:g)          { "edna" }
       let(:sched_data) { { name: 'my schedule',
