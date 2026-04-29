@@ -21,7 +21,7 @@ client.group("my-group").schedule.create(name: "nightly", callback_url: "https:/
 
 ## Development
 
-```
+```shell
 bundle install
 bundle exec rspec
 ```

@@ -8,6 +8,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+-
+
+### Changed
+
+-
+
+## [0.0.14] - 2026-04-29
+
+### Added
+
 - Support for testing against multiple Ruby versions in GitHub Actions.
 - SimpleCov for code coverage reporting.
 
@@ -110,7 +120,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Initial release with basic Transferatu client structure.
 
-[Unreleased]: https://github.com/heroku/xfrtuc/compare/v0.0.13...HEAD
+[Unreleased]: https://github.com/heroku/xfrtuc/compare/v0.0.14...HEAD
+[0.0.14]: https://github.com/heroku/xfrtuc/compare/v0.0.13...v0.0.14
 [0.0.13]: https://github.com/heroku/xfrtuc/compare/v0.0.12...v0.0.13
 [0.0.12]: https://github.com/heroku/xfrtuc/compare/v0.0.11...v0.0.12
 [0.0.11]: https://github.com/heroku/xfrtuc/compare/v0.0.10...v0.0.11
