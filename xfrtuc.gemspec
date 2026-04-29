@@ -13,6 +13,12 @@ Gem::Specification.new do |gem|
   gem.executables = gem.files.grep(%r{^bin/}).map { |f| File.basename(f) }
   gem.name = "xfrtuc"
   gem.require_paths = ["lib"]
-  gem.version = Xfrtuc::VERSION
-  gem.license = "MIT"
+  gem.version       = Xfrtuc::VERSION
+  gem.license       = "MIT"
+
+  gem.required_ruby_version = ">= 3.2"
+
+  gem.add_development_dependency 'rspec', '~> 3.0'
+  gem.add_development_dependency 'simplecov'
+  gem.add_development_dependency 'webmock'
 end
