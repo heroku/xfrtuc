@@ -17,8 +17,4 @@ Gem::Specification.new do |gem|
   gem.license = "MIT"
 
   gem.required_ruby_version = ">= 3.2"
-
-  gem.add_development_dependency "rspec", "~> 3.0"
-  gem.add_development_dependency "simplecov"
-  gem.add_development_dependency "webmock"
 end
