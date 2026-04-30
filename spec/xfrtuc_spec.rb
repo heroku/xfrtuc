@@ -7,7 +7,7 @@ module Xfrtuc
   RSpec.describe Client do
     let(:username) { "reginald" }
     let(:password) { "hunter2" }
-    let(:client) { Client.new(username, password) }
+    let(:client) { described_class.new(username, password) }
 
     describe "#group" do
       context "with an argument" do
@@ -15,7 +15,7 @@ module Xfrtuc
 
         it "returns a new client rooted at that group's base URL" do
           group_client = client.group(group_name)
-          expect(group_client).to be_instance_of(Client)
+          expect(group_client).to be_instance_of(described_class)
           expect(group_client.base_url).to eq(client.base_url +
                                               "/groups/#{CGI.escape(group_name)}")
         end
