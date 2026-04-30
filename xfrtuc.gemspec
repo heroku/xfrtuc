@@ -8,7 +8,7 @@ Gem::Specification.new do |gem|
   gem.homepage = "https://github.com/heroku/xfrtuc"
 
   gem.files = `git ls-files`.split($\)
-  gem.executables = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
+  gem.executables = gem.files.grep(%r{^bin/}).map { |f| File.basename(f) }
   gem.name = "xfrtuc"
   gem.require_paths = ["lib"]
   gem.version = Xfrtuc::VERSION
