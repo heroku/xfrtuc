@@ -146,7 +146,7 @@ module Xfrtuc
       from_url = opts.fetch :from_url
       to_type = opts.fetch :to_type
       to_url = opts.fetch :to_url
-      [ :from_type, :from_url, :to_type, :to_url ].each { |key| opts.delete key }
+      [:from_type, :from_url, :to_type, :to_url].each { |key| opts.delete key }
       from_name = opts.delete :from_name
       to_name = opts.delete :to_name
       log_input_url = opts.delete :log_input_url
@@ -201,7 +201,7 @@ module Xfrtuc
       retain_weeks = opts.delete(:retain_weeks)
       retain_months = opts.delete(:retain_months)
 
-      [ :name, :callback_url, :hour, :days, :timezone ].each { |key| opts.delete key }
+      [:name, :callback_url, :hour, :days, :timezone].each { |key| opts.delete key }
       unless opts.empty?
         raise ArgumentError, "Unsupported option(s): #{opts.keys}"
       end
