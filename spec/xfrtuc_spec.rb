@@ -106,9 +106,9 @@ module Xfrtuc
     describe Transfer do
       let(:g) { "edna" }
       let(:xfer_data) { { from_url: 'postgres:///test1',
-                         from_name: 'earl', from_type: 'pg_dump',
-                         to_url: 'postgres:///test2',
-                         to_name: 'mildred', to_type: 'pg_restore' }
+                          from_name: 'earl', from_type: 'pg_dump',
+                          to_url: 'postgres:///test2',
+                          to_name: 'mildred', to_type: 'pg_restore' }
       }
       let(:xfer_id) { SecureRandom.uuid }
 
@@ -398,10 +398,10 @@ module Xfrtuc
     describe Schedule do
       let(:g) { "edna" }
       let(:sched_data) { { name: 'my schedule',
-                          callback_url: 'https://example.com/callback/foo',
-                          hour: 13,
-                          days: Date::DAYNAMES,
-                          timezone: 'UTC' }
+                           callback_url: 'https://example.com/callback/foo',
+                           hour: 13,
+                           days: Date::DAYNAMES,
+                           timezone: 'UTC' }
       }
       let(:sched_id) { SecureRandom.uuid }
 
