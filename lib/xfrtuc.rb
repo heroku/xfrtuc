@@ -169,8 +169,8 @@ module Xfrtuc
         to_url: to_url,
         to_name: to_name,
       }
-      payload.merge!(log_input_url: log_input_url) unless log_input_url.nil?
-      payload.merge!(num_keep: num_keep) unless num_keep.nil?
+      payload[:log_input_url] = log_input_url unless log_input_url.nil?
+      payload[:num_keep] = num_keep unless num_keep.nil?
       client.post("/transfers", payload)
     end
 
