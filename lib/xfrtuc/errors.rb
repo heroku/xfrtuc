@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Xfrtuc
   module HTTP
     class Error < StandardError; end
