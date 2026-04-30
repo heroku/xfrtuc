@@ -81,7 +81,7 @@ module Xfrtuc
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = uri.scheme == "https"
       response = http.request(request)
-      status = response.code.to_i
+      status = Integer(response.code)
       unless (200..299).cover?(status)
         error_class = HTTP_ERROR_MAP.fetch(status) do
           (status >= 500) ? HTTP::ServerError : HTTP::ClientError
