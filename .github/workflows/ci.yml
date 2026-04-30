@@ -1,4 +1,4 @@
-name: Rspec
+name: CI
 on:
   push:
     branches:
@@ -6,6 +6,15 @@ on:
   pull_request:
     types: [edited, opened, synchronize, reopened, ready_for_review]
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.4'
+        bundler-cache: true
+    - run: bundle exec rubocop
   rspec:
     runs-on: ubuntu-latest
     strategy:
