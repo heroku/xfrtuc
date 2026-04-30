@@ -1,14 +1,14 @@
-require 'cgi'
-require 'json'
-require 'net/http'
-require 'uri'
-require 'xfrtuc/errors'
+require "cgi"
+require "json"
+require "net/http"
+require "uri"
+require "xfrtuc/errors"
 
 module Xfrtuc
   class Client
     attr_reader :base_url
 
-    def initialize(username, password, base_url = 'https://transferatu.heroku.com')
+    def initialize(username, password, base_url = "https://transferatu.heroku.com")
       @base_url = base_url
       @username = username
       @password = password
@@ -74,10 +74,10 @@ module Xfrtuc
 
     def execute(uri, request)
       request.basic_auth(@username, @password)
-      request['Content-Type'] = 'application/json'
-      request['Accept'] = 'application/json'
+      request["Content-Type"] = "application/json"
+      request["Accept"] = "application/json"
       http = Net::HTTP.new(uri.host, uri.port)
-      http.use_ssl = uri.scheme == 'https'
+      http.use_ssl = uri.scheme == "https"
       response = http.request(request)
       status = response.code.to_i
       unless (200..299).cover?(status)
@@ -203,7 +203,7 @@ module Xfrtuc
       callback_url = opts.fetch :callback_url
       hour = opts.fetch :hour
       days = opts.fetch(:days, Date::DAYNAMES)
-      timezone = opts.fetch(:timezone, 'UTC')
+      timezone = opts.fetch(:timezone, "UTC")
       retain_weeks = opts.delete(:retain_weeks)
       retain_months = opts.delete(:retain_months)
 

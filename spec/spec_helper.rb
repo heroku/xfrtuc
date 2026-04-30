@@ -1,10 +1,10 @@
-require 'simplecov'
+require "simplecov"
 SimpleCov.start
 
-require 'bundler'
-require 'date'
-require 'xfrtuc'
-require 'webmock/rspec'
+require "bundler"
+require "date"
+require "xfrtuc"
+require "webmock/rspec"
 
 RSpec.configure do |config|
   config.expect_with :rspec do |expectations|

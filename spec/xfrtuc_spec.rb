@@ -1,15 +1,15 @@
-require 'securerandom'
-require 'spec_helper'
+require "securerandom"
+require "spec_helper"
 
 module Xfrtuc
   RSpec.describe Client do
-    let(:username) { 'reginald' }
-    let(:password) { 'hunter2' }
+    let(:username) { "reginald" }
+    let(:password) { "hunter2" }
     let(:client) { Client.new(username, password) }
 
     describe "#group" do
       context "with an argument" do
-        let(:group_name) { 'foo' }
+        let(:group_name) { "foo" }
 
         it "returns a new client rooted at that group's base URL" do
           group_client = client.group(group_name)
@@ -40,9 +40,9 @@ module Xfrtuc
   end
 
   RSpec.describe "api interactions" do
-    let(:username) { 'vivian' }
-    let(:password) { 'hunter2' }
-    let(:host) { 'transferatu.example.com' }
+    let(:username) { "vivian" }
+    let(:password) { "hunter2" }
+    let(:host) { "transferatu.example.com" }
     let(:base_url) { "https://#{host}" }
     let(:client) { Client.new(username, password, base_url) }
 
@@ -66,15 +66,15 @@ module Xfrtuc
 
       describe "#list" do
         it "lists existing groups" do
-          groups = [{ name: 'g1' }, { name: 'g2' }]
+          groups = [{ name: "g1" }, { name: "g2" }]
           WebMock.stub_request(:get, "#{base_url}/groups")
             .with(basic_auth: [username, password])
             .to_return_json(status: 200, body: groups)
 
           result = client.group.list
           expect(result.count).to eq(2)
-          expect(result.first["name"]).to eq('g1')
-          expect(result.last["name"]).to eq('g2')
+          expect(result.first["name"]).to eq("g1")
+          expect(result.last["name"]).to eq("g2")
         end
       end
 
@@ -106,10 +106,10 @@ module Xfrtuc
     describe Transfer do
       let(:g) { "edna" }
       let(:xfer_data) {
-        { from_url: 'postgres:///test1',
-          from_name: 'earl', from_type: 'pg_dump',
-          to_url: 'postgres:///test2',
-          to_name: 'mildred', to_type: 'pg_restore' }
+        { from_url: "postgres:///test1",
+          from_name: "earl", from_type: "pg_dump",
+          to_url: "postgres:///test2",
+          to_name: "mildred", to_type: "pg_restore" }
       }
       let(:xfer_id) { SecureRandom.uuid }
 
@@ -152,7 +152,7 @@ module Xfrtuc
 
         it "raises ArgumentError for unsupported options" do
           expect {
-            client.group(g).transfer.create(xfer_data.merge(bogus: 'value'))
+            client.group(g).transfer.create(xfer_data.merge(bogus: "value"))
           }.to raise_error(ArgumentError, /Unsupported option/)
         end
       end
@@ -205,7 +205,7 @@ module Xfrtuc
 
         it "raises ArgumentError for unsupported options" do
           expect {
-            client.group(g).transfer.info(xfer_id, bogus: 'value')
+            client.group(g).transfer.info(xfer_id, bogus: "value")
           }.to raise_error(ArgumentError, /Unsupported option/)
         end
       end
@@ -399,11 +399,11 @@ module Xfrtuc
     describe Schedule do
       let(:g) { "edna" }
       let(:sched_data) {
-        { name: 'my schedule',
-          callback_url: 'https://example.com/callback/foo',
+        { name: "my schedule",
+          callback_url: "https://example.com/callback/foo",
           hour: 13,
           days: Date::DAYNAMES,
-          timezone: 'UTC' }
+          timezone: "UTC" }
       }
       let(:sched_id) { SecureRandom.uuid }
 
@@ -436,7 +436,7 @@ module Xfrtuc
 
         it "raises ArgumentError for unsupported options" do
           expect {
-            client.group(g).schedule.create(sched_data.merge(bogus: 'value'))
+            client.group(g).schedule.create(sched_data.merge(bogus: "value"))
           }.to raise_error(ArgumentError, /Unsupported option/)
         end
       end

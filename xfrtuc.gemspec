@@ -1,10 +1,10 @@
-require File.expand_path('../lib/xfrtuc/version', __FILE__)
+require File.expand_path("../lib/xfrtuc/version", __FILE__)
 
 Gem::Specification.new do |gem|
   gem.authors = ["Maciek Sakrejda"]
   gem.email = ["m.sakrejda@gmail.com"]
-  gem.description = 'Transferatu client'
-  gem.summary = 'Transferatu client: see https://github.com/heroku/transferatu'
+  gem.description = "Transferatu client"
+  gem.summary = "Transferatu client: see https://github.com/heroku/transferatu"
   gem.homepage = "https://github.com/heroku/xfrtuc"
 
   gem.files = `git ls-files`.split($\)
