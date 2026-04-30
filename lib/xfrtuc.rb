@@ -107,7 +107,9 @@ module Xfrtuc
   end
 
   class Group < ApiEndpoint
-    def initialize(client); super; end
+    def initialize(client)
+      super
+    end
 
     def info(name)
       client.get("/groups/#{CGI.escape(name)}")
@@ -127,7 +129,9 @@ module Xfrtuc
   end
 
   class Transfer < ApiEndpoint
-    def initialize(client); super; end
+    def initialize(client)
+      super
+    end
 
     def info(id, opts = {})
       verbose = opts.delete(:verbose) || false
@@ -182,7 +186,9 @@ module Xfrtuc
   end
 
   class Schedule < ApiEndpoint
-    def initialize(client); super; end
+    def initialize(client)
+      super
+    end
 
     def info(id)
       client.get("/schedules/#{id}")
