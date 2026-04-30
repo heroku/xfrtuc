@@ -20,3 +20,6 @@ Style/TrailingCommaInHashLiteral:
 
 Lint/NumberConversion:
   Enabled: true
+
+RSpec/ExampleLength:
+  Max: 12
