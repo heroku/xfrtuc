@@ -82,7 +82,7 @@ module Xfrtuc
       status = response.code.to_i
       unless (200..299).cover?(status)
         error_class = HTTP_ERROR_MAP.fetch(status) do
-          status >= 500 ? HTTP::ServerError : HTTP::ClientError
+          (status >= 500) ? HTTP::ServerError : HTTP::ClientError
         end
         raise error_class, "Expected 2xx, got #{response.code}"
       end
