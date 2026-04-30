@@ -8,7 +8,7 @@ module Xfrtuc
   class Client
     attr_reader :base_url
 
-    def initialize(username, password, base_url='https://transferatu.heroku.com')
+    def initialize(username, password, base_url = 'https://transferatu.heroku.com')
       @base_url = base_url
       @username = username
       @password = password
@@ -22,7 +22,7 @@ module Xfrtuc
       @sched_client ||= Xfrtuc::Schedule.new(self)
     end
 
-    def group(name=nil)
+    def group(name = nil)
       if name.nil?
         @group_client ||= Xfrtuc::Group.new(self)
       else
@@ -31,21 +31,21 @@ module Xfrtuc
       end
     end
 
-    def get(path, params={})
+    def get(path, params = {})
       uri = build_uri(path)
       uri.query = URI.encode_www_form(params[:params]) if params[:params]
       request = Net::HTTP::Get.new(uri)
       execute(uri, request)
     end
 
-    def post(path, data={})
+    def post(path, data = {})
       uri = build_uri(path)
       request = Net::HTTP::Post.new(uri)
       request.body = JSON.generate(data)
       execute(uri, request)
     end
 
-    def put(path, data={})
+    def put(path, data = {})
       uri = build_uri(path)
       request = Net::HTTP::Put.new(uri)
       request.body = JSON.generate(data)
@@ -117,7 +117,7 @@ module Xfrtuc
       client.get("/groups")
     end
 
-    def create(name, log_input_url=nil)
+    def create(name, log_input_url = nil)
       client.post("/groups", { name: name, log_input_url: log_input_url })
     end
 
@@ -129,7 +129,7 @@ module Xfrtuc
   class Transfer < ApiEndpoint
     def initialize(client); super; end
 
-    def info(id, opts={})
+    def info(id, opts = {})
       verbose = opts.delete(:verbose) || false
       unless opts.empty?
         raise ArgumentError, "Unsupported option(s): #{opts.keys}"
@@ -176,7 +176,7 @@ module Xfrtuc
       client.post("/transfers/#{CGI.escape(id)}/actions/cancel")
     end
 
-    def public_url(id, opts={})
+    def public_url(id, opts = {})
       client.post("/transfers/#{CGI.escape(id)}/actions/public-url", opts)
     end
   end
