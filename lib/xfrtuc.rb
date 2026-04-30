@@ -165,7 +165,7 @@ module Xfrtuc
         from_name: from_name,
         to_type: to_type,
         to_url: to_url,
-        to_name: to_name
+        to_name: to_name,
       }
       payload.merge!(log_input_url: log_input_url) unless log_input_url.nil?
       payload.merge!(num_keep: num_keep) unless num_keep.nil?
@@ -216,7 +216,7 @@ module Xfrtuc
                      callback_url: callback_url,
                      hour: hour,
                      days: days,
-                     timezone: timezone }
+                     timezone: timezone, }
       sched_opts[:retain_weeks] = retain_weeks unless retain_weeks.nil?
       sched_opts[:retain_months] = retain_months unless retain_months.nil?
 

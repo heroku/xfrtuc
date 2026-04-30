@@ -109,7 +109,7 @@ module Xfrtuc
         { from_url: "postgres:///test1",
           from_name: "earl", from_type: "pg_dump",
           to_url: "postgres:///test2",
-          to_name: "mildred", to_type: "pg_restore" }
+          to_name: "mildred", to_type: "pg_restore", }
       }
       let(:xfer_id) { SecureRandom.uuid }
 
@@ -403,7 +403,7 @@ module Xfrtuc
           callback_url: "https://example.com/callback/foo",
           hour: 13,
           days: Date::DAYNAMES,
-          timezone: "UTC" }
+          timezone: "UTC", }
       }
       let(:sched_id) { SecureRandom.uuid }
 
