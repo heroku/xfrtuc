@@ -23,3 +23,6 @@ Lint/NumberConversion:
 
 RSpec/ExampleLength:
   Max: 12
+
+RSpec/MultipleExpectations:
+  Max: 3
