@@ -161,7 +161,7 @@ module Xfrtuc
 
       describe "#list" do
         it "lists existing transfers" do
-          xfers = 2.times.map { xfer_data.merge(uuid: SecureRandom.uuid) }
+          xfers = Array.new(2) { xfer_data.merge(uuid: SecureRandom.uuid) }
           WebMock.stub_request(:get, "#{base_url}/groups/#{g}/transfers")
             .with(basic_auth: [username, password])
             .to_return_json(status: 200, body: xfers)
@@ -445,7 +445,7 @@ module Xfrtuc
 
       describe "#list" do
         it "lists existing schedules" do
-          scheds = 2.times.map { sched_data.merge(uuid: SecureRandom.uuid) }
+          scheds = Array.new(2) { sched_data.merge(uuid: SecureRandom.uuid) }
           WebMock.stub_request(:get, "#{base_url}/groups/#{g}/schedules")
             .with(basic_auth: [username, password])
             .to_return_json(status: 200, body: scheds)
