@@ -156,13 +156,13 @@ module Xfrtuc
         raise ArgumentError, "Unsupported option(s): #{opts.keys}"
       end
       payload = {
-                 from_type: from_type,
-                 from_url: from_url,
-                 from_name: from_name,
-                 to_type: to_type,
-                 to_url: to_url,
-                 to_name: to_name
-                }
+        from_type: from_type,
+        from_url: from_url,
+        from_name: from_name,
+        to_type: to_type,
+        to_url: to_url,
+        to_name: to_name
+      }
       payload.merge!(log_input_url: log_input_url) unless log_input_url.nil?
       payload.merge!(num_keep: num_keep) unless num_keep.nil?
       client.post("/transfers", payload)
