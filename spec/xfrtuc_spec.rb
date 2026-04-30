@@ -54,9 +54,9 @@ module Xfrtuc
         it "creates a new group" do
           WebMock.stub_request(:post, "#{base_url}/groups")
             .with(basic_auth: [username, password],
-                  body: { name: group_name, log_input_url: log_input_url })
+              body: { name: group_name, log_input_url: log_input_url })
             .to_return_json(status: 201,
-                            body: { name: group_name, log_input_url: log_input_url })
+              body: { name: group_name, log_input_url: log_input_url })
 
           result = client.group.create(group_name, log_input_url)
           expect(result["name"]).to eq(group_name)
@@ -129,7 +129,7 @@ module Xfrtuc
           response = xfer_data.merge(uuid: xfer_id, log_input_url: log_url)
           WebMock.stub_request(:post, "#{base_url}/groups/#{g}/transfers")
             .with(basic_auth: [username, password],
-                  body: hash_including("log_input_url" => log_url))
+              body: hash_including("log_input_url" => log_url))
             .to_return_json(status: 201, body: response)
 
           result = client.group(g).transfer.create(xfer_data.merge(log_input_url: log_url))
@@ -141,7 +141,7 @@ module Xfrtuc
           response = xfer_data.merge(uuid: xfer_id, num_keep: num_keep)
           WebMock.stub_request(:post, "#{base_url}/groups/#{g}/transfers")
             .with(basic_auth: [username, password],
-                  body: hash_including("num_keep" => num_keep))
+              body: hash_including("num_keep" => num_keep))
             .to_return_json(status: 201, body: response)
 
           result = client.group(g).transfer.create(xfer_data.merge(num_keep: num_keep))
@@ -177,7 +177,7 @@ module Xfrtuc
           response = xfer_data.merge(uuid: xfer_id)
           WebMock.stub_request(:get, "#{base_url}/groups/#{g}/transfers/#{xfer_id}")
             .with(basic_auth: [username, password],
-                  query: { "verbose" => "false" })
+              query: { "verbose" => "false" })
             .to_return_json(status: 200, body: response)
 
           xfer = client.group(g).transfer.info(xfer_id)
@@ -191,7 +191,7 @@ module Xfrtuc
           response = xfer_data.merge(uuid: xfer_id, logs: [])
           WebMock.stub_request(:get, "#{base_url}/groups/#{g}/transfers/#{xfer_id}")
             .with(basic_auth: [username, password],
-                  query: { "verbose" => "true" })
+              query: { "verbose" => "true" })
             .to_return_json(status: 200, body: response)
 
           xfer = client.group(g).transfer.info(xfer_id, verbose: true)
@@ -251,7 +251,7 @@ module Xfrtuc
           expires_at = now + (5 * 60)
           WebMock.stub_request(:post, "#{base_url}/groups/#{g}/transfers/#{xfer_id}/actions/public-url")
             .with(basic_auth: [username, password],
-                  body: { ttl: 300 }.to_json)
+              body: { ttl: 300 }.to_json)
             .to_return_json(status: 201, body: { url: url, expires_at: expires_at })
 
           url_data = client.group(g).transfer.public_url(xfer_id, ttl: 5 * 60)
@@ -422,7 +422,7 @@ module Xfrtuc
           response = sched_data.merge(uuid: sched_id, retain_weeks: retain_weeks, retain_months: retain_months)
           WebMock.stub_request(:put, "#{base_url}/groups/#{g}/schedules/#{CGI.escape(sched_data[:name])}")
             .with(basic_auth: [username, password],
-                  body: hash_including("retain_weeks" => retain_weeks, "retain_months" => retain_months))
+              body: hash_including("retain_weeks" => retain_weeks, "retain_months" => retain_months))
             .to_return_json(status: 201, body: response)
 
           result = client.group(g).schedule.create(sched_data.merge(retain_weeks: retain_weeks, retain_months: retain_months))

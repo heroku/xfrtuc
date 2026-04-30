@@ -27,7 +27,7 @@ module Xfrtuc
         @group_client ||= Xfrtuc::Group.new(self)
       else
         self.class.new(@username, @password,
-                       @base_url + "/groups/#{CGI.escape(name)}")
+          @base_url + "/groups/#{CGI.escape(name)}")
       end
     end
 
