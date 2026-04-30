@@ -91,7 +91,7 @@ module Xfrtuc
     rescue Errno::ECONNRESET => e
       raise HTTP::ConnectionResetError, e.message
     rescue ::SocketError, Errno::ECONNREFUSED, Errno::EHOSTUNREACH,
-           Errno::ENETUNREACH, Net::OpenTimeout, Net::ReadTimeout => e
+      Errno::ENETUNREACH, Net::OpenTimeout, Net::ReadTimeout => e
       raise HTTP::SocketError, e.message
     end
   end
