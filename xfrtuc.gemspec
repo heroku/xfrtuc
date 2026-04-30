@@ -3,8 +3,8 @@ require File.expand_path('../lib/xfrtuc/version', __FILE__)
 Gem::Specification.new do |gem|
   gem.authors = ["Maciek Sakrejda"]
   gem.email = ["m.sakrejda@gmail.com"]
-  gem.description = %q{Transferatu client}
-  gem.summary = %q{Transferatu client: see https://github.com/heroku/transferatu}
+  gem.description = %q(Transferatu client)
+  gem.summary = %q(Transferatu client: see https://github.com/heroku/transferatu)
   gem.homepage = "https://github.com/heroku/xfrtuc"
 
   gem.files = `git ls-files`.split($\)
