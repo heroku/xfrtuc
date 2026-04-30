@@ -5,7 +5,7 @@ module Xfrtuc
   RSpec.describe Client do
     let(:username) { 'reginald' }
     let(:password) { 'hunter2' }
-    let(:client)   { Client.new(username, password) }
+    let(:client) { Client.new(username, password) }
 
     describe "#group" do
       context "with an argument" do
@@ -42,12 +42,12 @@ module Xfrtuc
   RSpec.describe "api interactions" do
     let(:username) { 'vivian' }
     let(:password) { 'hunter2' }
-    let(:host)     { 'transferatu.example.com' }
+    let(:host) { 'transferatu.example.com' }
     let(:base_url) { "https://#{host}" }
-    let(:client)   { Client.new(username, password, base_url) }
+    let(:client) { Client.new(username, password, base_url) }
 
     describe Group do
-      let(:group_name)    { "edna" }
+      let(:group_name) { "edna" }
       let(:log_input_url) { "https://token:t.foo@logplex.example.com/logs" }
 
       describe "#create" do
@@ -104,13 +104,13 @@ module Xfrtuc
     end
 
     describe Transfer do
-      let(:g)         { "edna" }
+      let(:g) { "edna" }
       let(:xfer_data) { { from_url: 'postgres:///test1',
                          from_name: 'earl', from_type: 'pg_dump',
                          to_url: 'postgres:///test2',
                          to_name: 'mildred', to_type: 'pg_restore' }
       }
-      let(:xfer_id)   { SecureRandom.uuid }
+      let(:xfer_id) { SecureRandom.uuid }
 
       describe "#create" do
         it "creates a new transfer" do
@@ -396,14 +396,14 @@ module Xfrtuc
     end
 
     describe Schedule do
-      let(:g)          { "edna" }
+      let(:g) { "edna" }
       let(:sched_data) { { name: 'my schedule',
                           callback_url: 'https://example.com/callback/foo',
                           hour: 13,
                           days: Date::DAYNAMES,
                           timezone: 'UTC' }
       }
-      let(:sched_id)   { SecureRandom.uuid }
+      let(:sched_id) { SecureRandom.uuid }
 
       describe "#create" do
         it "creates a new schedule" do
