@@ -15,4 +15,6 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
   gem.version = Xfrtuc::VERSION
   gem.license = "MIT"
+
+  gem.required_ruby_version = ">= 3.2"
 end

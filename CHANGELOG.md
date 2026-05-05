@@ -8,15 +8,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+-
+
+### Changed
+
+-
+
+## [1.0.0] - 2026-04-30
+
+### Added
+
+- `Xfrtuc::HTTP::Error` exception hierarchy. See: lib/xfrtuc/errors.rb
 - Support for testing against multiple Ruby versions in GitHub Actions.
 - SimpleCov for code coverage reporting.
 
 ### Changed
 
 - Replaced `sham_rack` / `FakeTransferatu` test fake with WebMock stubs.
-- Replaced `rest-client` with `Net::HTTP`
 - Updated rspec configuration.
 - Switched from CircleCI to GitHub Actions for CI.
+
+### Removed
+
+- **Breaking Change:** Replace `RestClient` with stdlib `Net::HTTP` - Gem-specific errors are raised rather than Excon-specific errors. See: lib/xfrtuc/errors.rb
+- Dropped support for Ruby < 3.2.
 
 ## [0.0.13] - 2021-03-04
 
@@ -110,7 +125,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Initial release with basic Transferatu client structure.
 
-[Unreleased]: https://github.com/heroku/xfrtuc/compare/v0.0.13...HEAD
+[Unreleased]: https://github.com/heroku/xfrtuc/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/heroku/xfrtuc/compare/v0.0.13...v1.0.0
 [0.0.13]: https://github.com/heroku/xfrtuc/compare/v0.0.12...v0.0.13
 [0.0.12]: https://github.com/heroku/xfrtuc/compare/v0.0.11...v0.0.12
 [0.0.11]: https://github.com/heroku/xfrtuc/compare/v0.0.10...v0.0.11
